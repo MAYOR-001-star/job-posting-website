@@ -1,6 +1,36 @@
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
-export default async function JobsPage() {
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const { q, type, location } = await searchParams
+
+  const query = q as string | undefined
+  const searchType = type as string | undefined
+  const locationType = location as string | undefined
+
+  const jobs = await prisma.job.findMany({
+    where: {
+      AND: [
+        query ? {
+          OR: [
+            { title: { contains: query, mode: "insensitive" } },
+            { company: { contains: query, mode: "insensitive" } },
+            { description: { contains: query, mode: "insensitive" } }
+          ]
+        } : {},
+        searchType ? { type: searchType } : {},
+        locationType ? { location: {contains: locationType, mode: "insensitive"} } : {},
+      ],
+    },
+    orderBy: { postedAt: "desc" },
+    include: {
+      postedBy: true
+    }
+  })
   return (
     <div className="space-y-8">
       <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -17,7 +47,6 @@ export default async function JobsPage() {
             className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
           >
             <option value="">All Types</option>
-            <option value="Full-time">Full-time</option>
             <option value="Part-time">Part-time</option>
             <option value="Contract">Contract</option>
             <option value="Internship">Internship</option>
@@ -37,7 +66,7 @@ export default async function JobsPage() {
         </form>
       </div>
 
-      {/* <div className="grid gap-6">
+      <div className="grid gap-6">
         {jobs.map((job) => (
           <div
             key={job.id}
@@ -76,7 +105,7 @@ export default async function JobsPage() {
             </div>
           </div>
         ))}
-      </div> */}
+      </div>
     </div>
   );
 }

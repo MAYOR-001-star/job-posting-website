@@ -3,11 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
-
 
 
 model Account {
@@ -77,7 +76,6 @@ model Job {
   postedById String
   updatedAt DateTime @updatedAt @map("updated_at")
   applications Application[]
-
 
   @@map("jobs")
 }
